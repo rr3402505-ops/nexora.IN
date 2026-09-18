@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXORA — Free Streaming</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #070707;
+            --card: #151515;
+            --red: #e50914;
+            --white: #fff;
+            --gray: #999;
+        }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: 0
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            padding: 0 5%;
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(#000, transparent);
+            transition: .3s;
+        }
+
+        .navbar.scrolled {
+            background: #080808
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: var(--red)
+        }
+
+        .navlinks {
+            display: flex;
+            gap: 28px;
+            margin-left: 50px;
+        }
+
+        .navlinks button {
+            background: none;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .navlinks button:hover,
+        .navlinks button.active {
+            color: white
+        }
+
+        .navright {
+            margin-left: auto;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .icon {
+            background: none;
+            color: white;
+            font-size: 20px;
+        }
+
+        /* HERO */
+        .hero {
+            height: 88vh;
+            min-height: 600px;
+            position: relative;
+            background:
+                url("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=2200&q=90") center/cover;
+        }
+
+        .hero:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(0, 0, 0, .95), rgba(0, 0, 0, .5), transparent),
+                linear-gradient(to top, #070707, transparent 45%);
+        }
+
+        .heroContent {
+            position: absolute;
+            z-index: 2;
+            top: 32%;
+            left: 7%;
+            max-width: 620px;
+        }
+
+        .original {
+            color: #ddd;
+            font-size: 12px;
+            letter-spacing: 3px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 {
+            font-size: clamp(55px, 7vw, 100px);
+            line-height: .85;
+            letter-spacing: -5px;
+            margin-bottom: 25px;
+        }
+
+        .hero h1 span {
+            color: var(--red)
+        }
+
+        .meta {
+            display: flex;
+            gap: 15px;
+            color: #ddd;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .hero p {
+            color: #ddd;
+            line-height: 1.6;
+            max-width: 570px;
+            margin-bottom: 25px;
+        }
+
+        .btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .playBtn,
+        .infoBtn {
+            padding: 13px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .playBtn {
+            background: white;
+            color: black;
+        }
+
+        .infoBtn {
+            background: rgba(100, 100, 100, .7);
+            color: white;
+        }
+
+        /* CONTENT */
+        .content {
+            padding: 10px 5% 80px;
+        }
+
+        .sectionTitle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0 15px;
+        }
+
+        .sectionTitle h2 {
+            font-size: 21px
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .row::-webkit-scrollbar {
+            display: none
+        }
+
+        /* CARD */
+        .card {
+            min-width: 190px;
+            width: 190px;
+            background: #151515;
+            border-radius: 7px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .card:hover {
+            transform: scale(1.06);
+            z-index: 10;
+        }
+
+        .card img {
+            width: 100%;
+            height: 275px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cardInfo {
+            padding: 11px
+        }
+
+        .cardTitle {
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cardMeta {
+            color: #888;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .cardPlay {
+            position: absolute;
+            top: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            color: black;
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .card:hover .cardPlay {
+            opacity: 1
+        }
+
+        .progress {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 58px;
+            height: 3px;
+            background: #333;
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            background: var(--red);
+        }
+
+        /* GENRES */
+        .genres {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .genre {
+            min-height: 85px;
+            border-radius: 8px;
+            border: 1px solid #292929;
+            background: linear-gradient(135deg, #1b1b1b, #0d0d0d);
+            color: white;
+            font-weight: bold;
+        }
+
+        .genre:hover {
+            border-color: #666;
+            transform: translateY(-3px);
+        }
+
+        /* PAGE */
+        .page {
+            min-height: 100vh;
+            padding: 110px 5% 80px;
+        }
+
+        .pageTitle {
+            margin-bottom: 35px
+        }
+
+        .pageTitle h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .pageTitle p {
+            color: #888
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        /* SEARCH */
+        .search {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .97);
+            z-index: 3000;
+            display: none;
+            padding: 90px 7%;
+            overflow-y: auto;
+        }
+
+        .search.show {
+            display: block
+        }
+
+        .searchTop {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .searchInput {
+            flex: 1;
+            padding: 17px 20px;
+            background: #181818;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 7px;
+            outline: none;
+            font-size: 19px;
+        }
+
+        .close {
+            background: none;
+            color: white;
+            font-size: 25px;
+        }
+
+        .searchResults {
+            max-width: 1000px;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        /* DETAILS */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .details {
+            width: min(1000px, 95vw);
+            min-height: 550px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #111;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .details img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .45;
+        }
+
+        .details:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, #111 5%, rgba(17, 17, 17, .8) 45%, transparent);
+        }
+
+        .detailsInfo {
+            position: relative;
+            z-index: 2;
+            padding: 50px;
+            max-width: 650px;
+        }
+
+        .detailsInfo h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .detailsInfo p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .closeModal {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            z-index: 5;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: 18px;
+        }
+
+        /* PLAYER */
+        .player {
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .player.show {
+            display: flex
+        }
+
+        .player video {
+            width: 90%;
+            max-height: 75vh;
+        }
+
+        .closePlayer {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #222;
+            color: white;
+            font-size: 20px;
+        }
+
+        .playerInfo {
+            width: 90%;
+            margin-top: 15px;
+        }
+
+        .playerInfo p {
+            color: #777;
+            margin-top: 5px;
+        }
+
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            right: 25px;
+            top: 75px;
+            width: 350px;
+            background: #171717;
+            border: 1px solid #333;
+            border-radius: 10px;
+            z-index: 2500;
+            display: none;
+            box-shadow: 0 20px 50px #000;
+        }
+
+        .notification.show {
+            display: block
+        }
+
+        .nHead {
+            padding: 18px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nHead button {
+            background: none;
+            color: white;
+        }
+
+        .nItem {
+            display: flex;
+            gap: 12px;
+            padding: 17px;
+            border-bottom: 1px solid #252525;
+        }
+
+        .nItem p {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* LOGIN */
+        .loginBox {
+            width: 400px;
+            max-width: 95%;
+            background: #151515;
+            padding: 40px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .loginBox input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #222;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        /* FREE SECTION */
+        .freeSection {
+            padding: 90px 5%;
+            text-align: center;
+            background: radial-gradient(circle, #280606, #070707 65%);
+        }
+
+        .freeSection h2 {
+            font-size: 45px;
+            margin: 15px 0;
+        }
+
+        .freeSection p {
+            color: #999;
+            margin-bottom: 25px;
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 50px 5%;
+            border-top: 1px solid #222;
+            text-align: center;
+            color: #777;
+        }
+
+        .footerLinks {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .footerLinks button {
+            background: none;
+            color: #777;
+        }
+
+        /* MOBILE */
+        @media(max-width:900px) {
+
+            .navlinks {
+                display: none
+            }
+
+            .grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .searchResults {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+        }
+
+        @media(max-width:650px) {
+
+            .navbar {
+                padding: 0 20px
+            }
+
+            .heroContent {
+                left: 25px;
+                right: 25px;
+                top: 38%;
+            }
+
+            .hero h1 {
+                font-size: 52px;
+                letter-spacing: -3px;
+            }
+
+            .content {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .card {
+                min-width: 155px;
+                width: 155px;
+            }
+
+            .card img {
+                height: 225px
+            }
+
+            .genres {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .searchResults {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .detailsInfo {
+                padding: 25px
+            }
+
+            .detailsInfo h1 {
+                font-size: 35px
+            }
+
+            .notification {
+                left: 15px;
+                right: 15px;
+                width: auto;
+            }
+
+            .freeSection h2 {
+                font-size: 32px
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar" id="navbar">
+
+        <div class="logo">NEXORA<span>.</span></div>
+
+        <nav class="navlinks">
+
+            <button class="active" onclick="home()">Home</button>
+            <button onclick="moviesPage()">Movies</button>
+            <button onclick="seriesPage()">Series</button>
+            <button onclick="myListPage()">My List</button>
+
+        </nav>
+
+        <div class="navright">
+
+            <button class="icon" onclick="openSearch()">🔍</button>
+
+            <button class="icon" onclick="openNotifications()">🔔</button>
+
+            <button class="icon" onclick="openLogin()">👤</button>
+
+        </div>
+
+    </header>
+
+
+    <!-- HOME -->
+    <main id="homePage">
+
+        <section class="hero">
+
+            <div class="heroContent">
+
+                <div class="original">NEXORA ORIGINAL</div>
+
+                <h1>
+                    THE LAST<br>
+                    <span>HORIZON</span>
+                </h1>
+
+                <div class="meta">
+                    <span>2026</span>
+                    <span>16+</span>
+                    <span>2h 18m</span>
+                    <span>4K</span>
+                    <span>⭐ 8.9</span>
+                </div>
+
+                <p>
+                    In a world where humanity has lost its connection with Earth,
+                    one explorer begins a journey beyond the edge of known space.
+                </p>
+
+                <div class="btns">
+
+                    <button class="playBtn" onclick="playMovie(1)">
+                        ▶ Play Free
+                    </button>
+
+                    <button class="infoBtn" onclick="details(1)">
+                        ⓘ More Info
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="content">
+
+            <div class="sectionTitle">
+                <h2>▶ Continue Watching</h2>
+            </div>
+
+            <div class="row" id="continueRow"></div>
+
+
+            <div class="sectionTitle">
+                <h2>🔥 Trending Now</h2>
+            </div>
+
+            <div class="row" id="trendingRow"></div>
+
+
+            <div class="sectionTitle">
+                <h2>⭐ Popular on NEXORA</h2>
+            </div>
+
+            <div class="row" id="popularRow"></div>
+
+
+            <div class="sectionTitle">
+                <h2>🆕 New Releases</h2>
+            </div>
+
+            <div class="row" id="newRow"></div>
+
+
+            <div class="sectionTitle">
+                <h2>Explore Genres</h2>
+            </div>
+
+            <div class="genres">
+
+                <button class="genre" onclick="genre('Action')">💥 Action</button>
+                <button class="genre" onclick="genre('Drama')">🎭 Drama</button>
+                <button class="genre" onclick="genre('Sci-Fi')">🚀 Sci-Fi</button>
+                <button class="genre" onclick="genre('Thriller')">🔪 Thriller</button>
+                <button class="genre" onclick="genre('Comedy')">😂 Comedy</button>
+                <button class="genre" onclick="genre('Horror')">👻 Horror</button>
+                <button class="genre" onclick="genre('Documentary')">🎥 Documentary</button>
+                <button class="genre" onclick="genre('Adventure')">🌎 Adventure</button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- OTHER PAGE -->
+    <section class="page hidden" id="otherPage">
+
+        <div class="pageTitle">
+
+            <h1 id="pageHeading">Movies</h1>
+
+            <p id="pageDescription">
+                Explore NEXORA.
+            </p>
+
+        </div>
+
+        <div class="grid" id="pageGrid"></div>
+
+    </section>
+
+
+    <!-- SEARCH -->
+    <div class="search" id="search">
+
+        <div class="searchTop">
+
+            <input class="searchInput" id="searchInput" placeholder="Search movies, series, genres..."
+                oninput="searchMovies()">
+
+            <button class="close" onclick="closeSearch()">✕</button>
+
+        </div>
+
+        <div class="searchResults" id="searchResults"></div>
+
+    </div>
+
+
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification">
+
+        <div class="nHead">
+
+            <h3>Notifications</h3>
+
+            <button onclick="closeNotifications()">✕</button>
+
+        </div>
+
+        <div class="nItem">
+
+            <span>🔥</span>
+
+            <div>
+                <b>New Release</b>
+                <p>New content is now streaming.</p>
+            </div>
+
+        </div>
+
+        <div class="nItem">
+
+            <span>🎬</span>
+
+            <div>
+                <b>Free Streaming</b>
+                <p>All demo content is available free.</p>
+            </div>
+
+        </div>
+
+        <div class="nItem">
+
+            <span>⭐</span>
+
+            <div>
+                <b>Recommended</b>
+                <p>We found something you may like.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DETAILS -->
+    <div class="modal" id="detailsModal">
+
+        <div class="details">
+
+            <button class="closeModal" onclick="closeDetails()">✕</button>
+
+            <img id="detailsImage">
+
+            <div class="detailsInfo">
+
+                <div class="original">NEXORA</div>
+
+                <h1 id="detailsTitle"></h1>
+
+                <div class="meta" id="detailsMeta"></div>
+
+                <p id="detailsDescription"></p>
+
+                <div class="btns" style="margin-top:25px">
+
+                    <button class="playBtn" id="detailsPlay">
+                        ▶ Play Free
+                    </button>
+
+                    <button class="infoBtn" id="listButton">
+                        ＋ My List
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PLAYER -->
+    <div class="player" id="player">
+
+        <button class="closePlayer" onclick="closePlayer()">✕</button>
+
+        <video id="video" controls playsinline preload="metadata">
+        </video>
+
+        <div class="playerInfo">
+
+            <h2 id="playerTitle"></h2>
+
+            <p>NEXORA • Free Streaming</p>
+
+        </div>
+
+    </div>
+
+
+    <!-- LOGIN -->
+    <div class="modal" id="loginModal">
+
+        <div class="loginBox">
+
+            <button class="closeModal" onclick="closeLogin()">✕</button>
+
+            <div class="logo">
+                NEXORA<span>.</span>
+            </div>
+
+            <h2 style="margin:25px 0 8px">
+                Welcome Back
+            </h2>
+
+            <p style="color:#888;margin-bottom:20px">
+                Sign in to your NEXORA account.
+            </p>
+
+            <input type="email" placeholder="Email address">
+
+            <input type="password" placeholder="Password">
+
+            <button class="playBtn" style="width:100%" onclick="demoLogin()">
+                Sign In
+            </button>
+
+            <p style="
+text-align:center;
+color:#777;
+margin-top:20px;
+font-size:13px">
+                Demo account — no payment required.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- FREE -->
+    <section class="freeSection">
+
+        <small style="
+color:#e50914;
+letter-spacing:3px;
+font-weight:bold">
+            100% FREE DEMO
+        </small>
+
+        <h2>
+            Watch without limits.
+        </h2>
+
+        <p>
+            No subscription. No payment. No premium lock.
+        </p>
+
+        <button class="playBtn" onclick="home()">
+            ▶ Watch Free
+        </button>
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer>
+
+        <div class="logo">
+            NEXORA<span>.</span>
+        </div>
+
+        <div class="footerLinks">
+
+            <button>About</button>
+            <button>Privacy</button>
+            <button>Terms</button>
+            <button>Help</button>
+            <button>Contact</button>
+
+        </div>
+
+        <p>
+            © 2026 NEXORA — Free OTT Demo
+        </p>
+
+    </footer>
+
+
+    <script>
+
+        /* ================================
+           NEXORA CONTENT DATABASE
+        ================================ */
+
+        const movies = [
+
+            {
+                id: 1,
+                title: "The Last Horizon",
+                year: 2026,
+                rating: 8.9,
+                genre: "Sci-Fi",
+                type: "Movie",
+                duration: "2h 18m",
+                description: "In a world where humanity has lost its connection with Earth, one explorer begins a journey beyond the edge of known space.",
+                image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=80",
+                progress: 65
+            },
+
+            {
+                id: 2,
+                title: "Neon City",
+                year: 2026,
+                rating: 8.7,
+                genre: "Thriller",
+                type: "Movie",
+                duration: "1h 54m",
+                description: "A detective enters a futuristic city where every citizen has a secret.",
+                image: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=80",
+                progress: 40
+            },
+
+            {
+                id: 3,
+                title: "Wild Earth",
+                year: 2026,
+                rating: 9.1,
+                genre: "Documentary",
+                type: "Series",
+                duration: "8 Episodes",
+                description: "Discover the hidden worlds of Earth's most extraordinary landscapes.",
+                image: "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80",
+                progress: 20
+            },
+
+            {
+                id: 4,
+                title: "The Silent Code",
+                year: 2025,
+                rating: 8.5,
+                genre: "Drama",
+                type: "Series",
+                duration: "10 Episodes",
+                description: "A mysterious code appears on millions of devices around the world.",
+                image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80",
+                progress: 55
+            },
+
+            {
+                id: 5,
+                title: "Shadow Protocol",
+                year: 2025,
+                rating: 8.8,
+                genre: "Action",
+                type: "Movie",
+                duration: "2h 06m",
+                description: "An elite operative discovers that his own agency has turned against him.",
+                image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 6,
+                title: "Ocean Unknown",
+                year: 2026,
+                rating: 9.0,
+                genre: "Adventure",
+                type: "Documentary",
+                duration: "1h 42m",
+                description: "A team of explorers dives into regions of the ocean never seen before.",
+                image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 7,
+                title: "After Midnight",
+                year: 2025,
+                rating: 8.2,
+                genre: "Horror",
+                type: "Movie",
+                duration: "1h 48m",
+                description: "Every night at midnight, the town loses one memory.",
+                image: "https://images.unsplash.com/photo-1505635552518-3448ff116af3?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 8,
+                title: "The Experiment",
+                year: 2026,
+                rating: 8.6,
+                genre: "Drama",
+                type: "Movie",
+                duration: "2h 01m",
+                description: "Six strangers wake up inside a mysterious laboratory.",
+                image: "https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 9,
+                title: "Future Earth",
+                year: 2026,
+                rating: 8.9,
+                genre: "Sci-Fi",
+                type: "Series",
+                duration: "12 Episodes",
+                description: "Humanity builds its first civilization on another planet.",
+                image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 10,
+                title: "Laughing Room",
+                year: 2026,
+                rating: 7.9,
+                genre: "Comedy",
+                type: "Movie",
+                duration: "1h 35m",
+                description: "Four friends accidentally become the world's worst detectives.",
+                image: "https://images.unsplash.com/photo-1527224857830-43a7acc85260?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 11,
+                title: "Lost Kingdom",
+                year: 2025,
+                rating: 8.4,
+                genre: "Adventure",
+                type: "Movie",
+                duration: "2h 12m",
+                description: "An archaeologist finds a forgotten civilization hidden beneath the desert.",
+                image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            },
+
+            {
+                id: 12,
+                title: "Black Signal",
+                year: 2026,
+                rating: 8.7,
+                genre: "Thriller",
+                type: "Series",
+                duration: "8 Episodes",
+                description: "A radio signal from the future predicts events before they happen.",
+                image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80",
+                progress: 0
+            }
+
+        ];
+
+
+        /* =================================
+           FREE DEMO VIDEO
+        ================================= */
+
+        const FREE_VIDEO =
+            "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+
+
+        /* =================================
+           WATCHLIST
+        ================================= */
+
+        let watchlist =
+            JSON.parse(localStorage.getItem("NEXORA_LIST")) || [];
+
+
+        /* =================================
+           CARD
+        ================================= */
+
+        function card(movie) {
+
+            return `
+
+<div class="card"
+onclick="details(${movie.id})">
+
+<img
+src="${movie.image}"
+alt="${movie.title}"
+loading="lazy">
+
+<button
+class="cardPlay"
+onclick="event.stopPropagation();playMovie(${movie.id})">
+▶
+</button>
+
+${movie.progress > 0
+                    ?
+                    `
+<div class="progress">
+<span style="width:${movie.progress}%"></span>
+</div>
+`
+                    : ""
+                }
+
+<div class="cardInfo">
+
+<div class="cardTitle">
+${movie.title}
+</div>
+
+<div class="cardMeta">
+${movie.year} • ⭐ ${movie.rating} • ${movie.genre}
+</div>
+
+</div>
+
+</div>
+
+`;
+
+        }
+
+
+        /* =================================
+           HOME
+        ================================= */
+
+        function renderHome() {
+
+            document.getElementById("continueRow").innerHTML =
+                movies.filter(x => x.progress > 0).map(card).join("");
+
+            document.getElementById("trendingRow").innerHTML =
+                [...movies].sort((a, b) => b.rating - a.rating).map(card).join("");
+
+            document.getElementById("popularRow").innerHTML =
+                movies.slice(2, 9).map(card).join("");
+
+            document.getElementById("newRow").innerHTML =
+                movies.filter(x => x.year === 2026).map(card).join("");
+
+        }
+
+
+        /* =================================
+           PAGES
+        ================================= */
+
+        function home() {
+
+            document.getElementById("homePage")
+                .classList.remove("hidden");
+
+            document.getElementById("otherPage")
+                .classList.add("hidden");
+
+            window.scrollTo(0, 0);
+
+        }
+
+        function moviesPage() {
+
+            showPage(
+                "Movies",
+                "Explore movies on NEXORA.",
+                movies.filter(x => x.type === "Movie")
+            );
+
+        }
+
+        function seriesPage() {
+
+            showPage(
+                "Series",
+                "Explore series on NEXORA.",
+                movies.filter(x => x.type === "Series")
+            );
+
+        }
+
+        function myListPage() {
+
+            showPage(
+                "My List",
+                "Your saved content.",
+                movies.filter(x => watchlist.includes(x.id))
+            );
+
+        }
+
+        function genre(name) {
+
+            showPage(
+                name,
+                "Explore " + name + " content.",
+                movies.filter(x => x.genre === name)
+            );
+
+        }
+
+        function showPage(title, description, list) {
+
+            document.getElementById("homePage")
+                .classList.add("hidden");
+
+            document.getElementById("otherPage")
+                .classList.remove("hidden");
+
+            document.getElementById("pageHeading")
+                .textContent = title;
+
+            document.getElementById("pageDescription")
+                .textContent = description;
+
+            if (!list.length) {
+
+                document.getElementById("pageGrid").innerHTML = `
+
+<div style="
+grid-column:1/-1;
+text-align:center;
+padding:100px 20px;
+color:#777">
+
+<div style="font-size:60px">♡</div>
+
+<h2 style="color:white;margin:15px">
+Nothing here yet
+</h2>
+
+</div>
+
+`;
+
+            } else {
+
+                document.getElementById("pageGrid").innerHTML =
+                    list.map(card).join("");
+
+            }
+
+            window.scrollTo(0, 0);
+
+        }
+
+
+        /* =================================
+           DETAILS
+        ================================= */
+
+        function details(id) {
+
+            let movie = movies.find(x => x.id === id);
+
+            if (!movie) return;
+
+            document.getElementById("detailsImage").src =
+                movie.image;
+
+            document.getElementById("detailsTitle").textContent =
+                movie.title;
+
+            document.getElementById("detailsMeta").innerHTML =
+                `${movie.year} • ${movie.duration} • ⭐ ${movie.rating} • ${movie.genre}`;
+
+            document.getElementById("detailsDescription").textContent =
+                movie.description;
+
+            document.getElementById("detailsPlay").onclick =
+                () => playMovie(id);
+
+            updateListButton(id);
+
+            document.getElementById("detailsModal")
+                .classList.add("show");
+
+        }
+
+        function closeDetails() {
+
+            document.getElementById("detailsModal")
+                .classList.remove("show");
+
+        }
+
+
+        /* =================================
+           PLAYER
+        ================================= */
+
+        function playMovie(id) {
+
+            let movie = movies.find(x => x.id === id);
+
+            if (!movie) return;
+
+            closeDetails();
+
+            document.getElementById("playerTitle")
+                .textContent = movie.title;
+
+            const video = document.getElementById("video");
+
+            video.src = FREE_VIDEO;
+
+            document.getElementById("player")
+                .classList.add("show");
+
+            video.load();
+
+            video.play().catch(() => { });
+
+        }
+
+        function closePlayer() {
+
+            const video = document.getElementById("video");
+
+            video.pause();
+
+            video.removeAttribute("src");
+
+            video.load();
+
+            document.getElementById("player")
+                .classList.remove("show");
+
+        }
+
+
+        /* =================================
+           WATCHLIST
+        ================================= */
+
+        function toggleList(id) {
+
+            if (watchlist.includes(id)) {
+
+                watchlist =
+                    watchlist.filter(x => x !== id);
+
+            } else {
+
+                watchlist.push(id);
+
+            }
+
+            localStorage.setItem(
+                "NEXORA_LIST",
+                JSON.stringify(watchlist)
+            );
+
+            updateListButton(id);
+
+        }
+
+
+        function updateListButton(id) {
+
+            let button =
+                document.getElementById("listButton");
+
+            if (watchlist.includes(id)) {
+
+                button.textContent = "✓ Added to My List";
+
+                button.onclick = () => toggleList(id);
+
+            } else {
+
+                button.textContent = "＋ My List";
+
+                button.onclick = () => toggleList(id);
+
+            }
+
+        }
+
+
+        /* =================================
+           SEARCH
+        ================================= */
+
+        function openSearch() {
+
+            document.getElementById("search")
+                .classList.add("show");
+
+            document.getElementById("searchInput")
+                .focus();
+
+        }
+
+        function closeSearch() {
+
+            document.getElementById("search")
+                .classList.remove("show");
+
+            document.getElementById("searchInput").value = "";
+
+            document.getElementById("searchResults").innerHTML = "";
+
+        }
+
+        function searchMovies() {
+
+            let q = document.getElementById("searchInput")
+                .value
+                .toLowerCase()
+                .trim();
+
+            if (!q) {
+
+                document.getElementById("searchResults")
+                    .innerHTML = "";
+
+                return;
+
+            }
+
+            let results = movies.filter(movie =>
+
+                movie.title.toLowerCase().includes(q) ||
+                movie.genre.toLowerCase().includes(q) ||
+                movie.type.toLowerCase().includes(q)
+
+            );
+
+            document.getElementById("searchResults").innerHTML =
+                results.length
+                    ?
+                    results.map(card).join("")
+                    :
+                    `
+<div style="
+grid-column:1/-1;
+text-align:center;
+padding:60px;
+color:#777">
+<h2>No results found</h2>
+</div>
+`;
+
+        }
+
+
+        /* =================================
+           NOTIFICATIONS
+        ================================= */
+
+        function openNotifications() {
+
+            document.getElementById("notification")
+                .classList.toggle("show");
+
+        }
+
+        function closeNotifications() {
+
+            document.getElementById("notification")
+                .classList.remove("show");
+
+        }
+
+
+        /* =================================
+           LOGIN
+        ================================= */
+
+        function openLogin() {
+
+            document.getElementById("loginModal")
+                .classList.add("show");
+
+        }
+
+        function closeLogin() {
+
+            document.getElementById("loginModal")
+                .classList.remove("show");
+
+        }
+
+        function demoLogin() {
+
+            alert(
+                "Welcome to NEXORA!\\n\\nThis is a frontend demo. Real authentication requires a backend."
+            );
+
+            closeLogin();
+
+        }
+
+
+        /* =================================
+           NAVBAR
+        ================================= */
+
+        window.addEventListener("scroll", () => {
+
+            if (window.scrollY > 50) {
+
+                document.getElementById("navbar")
+                    .classList.add("scrolled");
+
+            } else {
+
+                document.getElementById("navbar")
+                    .classList.remove("scrolled");
+
+            }
+
+        });
+
+
+        /* =================================
+           ESC
+        ================================= */
+
+        document.addEventListener("keydown", e => {
+
+            if (e.key === "Escape") {
+
+                closeSearch();
+                closeDetails();
+                closePlayer();
+                closeLogin();
+                closeNotifications();
+
+            }
+
+        });
+
+
+        /* =================================
+           START
+        ================================= */
+
+        renderHome();
+
+    </script>
+
+</body>
+
+</html>
